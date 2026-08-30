@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.controllers.auth import router as auth_router
+from backend.controllers.users import router as users_router
 
 app = FastAPI(title="Call Help - Sistema de Chamados de TI")
 
@@ -16,6 +17,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(users_router)
 
 
 @app.get("/")
