@@ -9,6 +9,7 @@ from alembic import context
 
 from backend.config import settings
 from backend.database import Base
+from backend.models import User, Equipment, Ticket  # noqa: F401
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
