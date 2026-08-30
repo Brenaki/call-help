@@ -2,20 +2,18 @@
 
 from datetime import datetime, timedelta, timezone
 
+import bcrypt
 from jose import jwt
-from passlib.context import CryptContext
 
 from backend.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 def hash_senha(senha: str) -> str:
-    return pwd_context.hash(senha)
+    return bcrypt.hashpw(senha.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verificar_senha(senha: str, hash_salvo: str) -> bool:
-    return pwd_context.verify(senha, hash_salvo)
+    return bcrypt.checkpw(senha.encode("utf-8"), hash_salvo.encode("utf-8"))
 
 
 def criar_jwt(subject: str, role: str) -> str:
