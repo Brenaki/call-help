@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Testes
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Env
+.env
+.env.*
+!.env.example
