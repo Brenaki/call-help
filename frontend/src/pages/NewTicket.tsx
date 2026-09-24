@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
-import type { Equipment } from '../api/types'
+import type { CatalogOptions, Equipment, User } from '../api/types'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 
@@ -16,21 +16,36 @@ export default function NewTicket() {
   const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('media')
   const [equipamentos, setEquipamentos] = useState<Equipment[]>([])
+  const [usuarios, setUsuarios] = useState<User[]>([])
+  const [opcoes, setOpcoes] = useState<CatalogOptions>({ localizations: [] })
+  const [solicitanteId, setSolicitanteId] = useState('')
   const [erro, setErro] = useState('')
   const [equipmentError, setEquipmentError] = useState(false)
   const [enviando, setEnviando] = useState(false)
-  const { token } = useAuth()
+  const { token, role, userId, name } = useAuth()
+  const isAdmin = role === 'admin'
   const navigate = useNavigate()
 
   useEffect(() => {
     let active = true
     if (token) {
-      api.get<Equipment[]>('/equipamentos')
-        .then((r) => { if (active) { setEquipamentos(r.data); setEquipmentError(false) } })
+      Promise.all([
+        api.get<Equipment[]>('/equipamentos/catalogo'),
+        api.get<CatalogOptions>('/chamados/opcoes'),
+        isAdmin ? api.get<User[]>('/usuarios') : Promise.resolve({ data: [] as User[] }),
+      ])
+        .then(([equipments, options, users]) => { if (active) { setEquipamentos(equipments.data); setOpcoes(Array.isArray(options.data) ? { localizations: [] } : options.data); setUsuarios(users.data); setEquipmentError(false) } })
         .catch(() => { if (active) setEquipmentError(true) })
     }
     return () => { active = false }
-  }, [token])
+  }, [token, isAdmin])
+
+  useEffect(() => {
+    if (!isAdmin && name) {
+      setUserName(name)
+      setSolicitanteId(userId ? String(userId) : '')
+    }
+  }, [isAdmin, name, userId])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -39,6 +54,7 @@ export default function NewTicket() {
     try {
       await api.post('/chamados', {
         user_name,
+        user_id: isAdmin && solicitanteId ? Number(solicitanteId) : undefined,
         equipment_id: equipment_id ? Number(equipment_id) : null,
         equipment_name: equipment_name || null,
         localization: localization || null,
@@ -71,9 +87,9 @@ export default function NewTicket() {
           <p className="form-note">Nome e descrição são obrigatórios. Preencha os demais campos quando souber.</p>
           {erro && <p className="erro" role="alert">{erro}</p>}
           <fieldset><legend><span>01</span>Quem precisa de suporte?</legend><div className="form-grid">
-            <label className="full-width">Nome<input value={user_name} onChange={(e) => setUserName(e.target.value)} placeholder="Nome de quem está solicitando" autoComplete="name" required /></label>
-            <label>Local<input value={localization} onChange={(e) => setLocalization(e.target.value)} placeholder="Ex.: sala 12, laboratório ou filial Centro" /></label>
-            <label>Setor<input value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Ex.: secretaria, pedagógico ou financeiro" /></label>
+            {isAdmin ? <label className="full-width">Solicitante<select value={solicitanteId} onChange={(e) => { const selected = usuarios.find((user) => user.id === Number(e.target.value)); setSolicitanteId(e.target.value); setUserName(selected?.name || '') }} required><option value="">Selecione quem solicita</option>{usuarios.map((user) => <option key={user.id} value={user.id}>{user.name} · {user.sector || 'Sem setor'}</option>)}</select></label> : <label className="full-width">Solicitante<input value={user_name} readOnly aria-readonly="true" /></label>}
+            <label>Local<input list="locais-chamados" value={localization} onChange={(e) => setLocalization(e.target.value)} placeholder="Ex.: sala 12, laboratório ou filial Centro" /><datalist id="locais-chamados">{opcoes.localizations.map((value) => <option key={value} value={value} />)}</datalist></label>
+            <label>Setor<input list="setores-chamados" value={sector} onChange={(e) => setSector(e.target.value)} placeholder="Ex.: secretaria, pedagógico ou financeiro" /><datalist id="setores-chamados">{opcoes.sectors?.map((value) => <option key={value} value={value} />)}</datalist></label>
           </div></fieldset>
           <fieldset><legend><span>02</span>O que está acontecendo?</legend><div className="form-grid">
             <label>Equipamento<select value={equipment_id} onChange={(e) => selecionarEquipamento(e.target.value)}><option value="">Sem equipamento / não listado</option>{equipamentos.map((eq) => <option key={eq.id} value={eq.id}>{eq.name}</option>)}</select></label>

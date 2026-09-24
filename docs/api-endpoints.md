@@ -9,6 +9,9 @@ Exceto `POST /login` e `GET /`, as rotas HTTP exigem `Authorization: Bearer <tok
 | `POST /login` | público | autentica e devolve JWT e papel |
 | `GET, POST, PUT, DELETE /usuarios` | admin | consulta e mantém usuários (`PUT`/`DELETE` recebem `/{id}`) |
 | `GET, POST, PUT, DELETE /equipamentos` | admin | consulta e mantém equipamentos (`PUT`/`DELETE` recebem `/{id}`) |
+| `GET /equipamentos/catalogo` | autenticado | equipamentos disponíveis ao abrir chamado |
+| `GET /equipamentos/opcoes` | autenticado | tipos e locais existentes para sugestões |
+| `GET, POST, PUT, DELETE /salas` | autenticado/admin | lista salas; admin mantém salas e seus `equipment_ids` |
 
 Exemplo de login:
 
@@ -24,6 +27,7 @@ Exemplo de login:
 | `GET /chamados/busca?q=texto` | busca textual |
 | `GET /chamados/{id}` | detalhe, respeitando visibilidade |
 | `POST /chamados` | cria; o solicitante é sempre o usuário autenticado |
+| `GET /chamados/opcoes` | lista locais e setores existentes para o formulário |
 | `PUT /chamados/{id}` | edita prioridade/status legado permitido pelo contrato original |
 | `PUT /chamados/{id}/status` | aplica uma transição válida |
 | `PUT /chamados/{id}/atribuir` | atribui o técnico; somente admin |
@@ -45,6 +49,12 @@ Para mudar status, envie:
 | `fechado` | `em_andamento` | admin |
 
 Cada transição registra um evento. Comentário público da TI em chamado aberto muda automaticamente para `em_andamento`; resposta pública do solicitante em `aguardando_cliente` também retoma o atendimento.
+
+O primeiro admin que envia uma resposta pública em um chamado sem responsável é atribuído automaticamente como técnico responsável.
+
+## Primeiro acesso
+
+`POST /usuarios` sempre cria a conta com a senha padrão configurada, independentemente de uma senha enviada no formulário. A resposta do login contém `must_change_password`; enquanto for verdadeiro, o usuário deve usar `PUT /usuarios/minha-senha` com `current_password` e `new_password` antes de acessar o sistema.
 
 ## Conversa e anexos
 

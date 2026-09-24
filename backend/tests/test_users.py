@@ -67,6 +67,21 @@ async def test_criar_usuario(client, db):
     assert data["email"] == "isabelle@escola.edu"
     assert data["role"] == "comum"
     assert "password" not in data
+    assert data["must_change_password"] is True
+
+    # A senha enviada pelo admin é ignorada: todo novo usuário começa com a padrão.
+    login = await client.post("/login", json={"email": "isabelle@escola.edu", "password": "123456"})
+    assert login.status_code == 200
+    assert login.json()["must_change_password"] is True
+    user_token = login.json()["access_token"]
+    change = await client.put(
+        "/usuarios/minha-senha",
+        headers={"Authorization": f"Bearer {user_token}"},
+        json={"current_password": "123456", "new_password": "nova-senha"},
+    )
+    assert change.status_code == 200
+    relogin = await client.post("/login", json={"email": "isabelle@escola.edu", "password": "nova-senha"})
+    assert relogin.json()["must_change_password"] is False
 
 
 @pytest.mark.asyncio

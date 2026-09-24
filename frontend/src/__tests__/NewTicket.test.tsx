@@ -15,7 +15,10 @@ vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     login: vi.fn(),
     token: 'fake-token',
-    role: 'admin',
+    role: 'comum',
+    userId: 2,
+    name: 'Isabelle',
+    mustChangePassword: false,
     logout: vi.fn(),
   }),
 }))
@@ -36,7 +39,7 @@ describe('NewTicket', () => {
 
   it('mostra os campos do formulario', () => {
     renderNewTicket()
-    expect(screen.getByText('Nome')).toBeInTheDocument()
+    expect(screen.getByText('Solicitante')).toBeInTheDocument()
     expect(screen.getByText('Local')).toBeInTheDocument()
     expect(screen.getByText('Setor')).toBeInTheDocument()
     expect(screen.getByText('Tipo do Problema')).toBeInTheDocument()
@@ -55,7 +58,6 @@ describe('NewTicket', () => {
     renderNewTicket()
     const user = userEvent.setup()
 
-    await user.type(screen.getByLabelText('Nome'), 'Isabelle')
     await user.type(screen.getByLabelText('Local'), 'Laboratorio 2')
     await user.type(screen.getByLabelText('Setor'), 'Informatica')
     await user.type(screen.getByLabelText('Descrição'), 'Computador nao liga')

@@ -12,6 +12,9 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: str
+    user_id: int
+    name: str
+    must_change_password: bool = False
 
 
 class TokenData(BaseModel):

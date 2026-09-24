@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api/client'
-import type { Comment, Ticket, TicketEvent, User } from '../api/types'
+import type { Attachment, Comment, Ticket, TicketEvent, User } from '../api/types'
 import Icon from '../components/Icon'
 import PageHeader from '../components/PageHeader'
 import { useAuth } from '../context/AuthContext'
@@ -28,7 +28,7 @@ const TRANSICOES: Record<string, string[]> = {
 
 export default function TicketDetail() {
   const { id } = useParams<{ id: string }>()
-  const { role, token } = useAuth()
+  const { role, token, userId } = useAuth()
   const { subscribe } = useRealtime()
   const [ticket, setTicket] = useState<Ticket | null>(null)
   const [comentarios, setComentarios] = useState<Comment[]>([])
@@ -77,7 +77,12 @@ export default function TicketDetail() {
     const unsubscribe = subscribe((event) => {
       if (Number(event.ticket_id) !== ticketId) return
       if (event.type === 'comment') {
-        const comment = event.comment as Comment
+        // Eventos enviados por versões anteriores do backend não traziam
+        // attachments. O fallback evita que um evento em tempo real derrube a tela.
+        const comment = {
+          ...(event.comment as Comment),
+          attachments: (event.comment as Comment).attachments ?? [],
+        }
         if (isAdmin || !comment.is_internal) {
           setComentarios((atuais) =>
             atuais.some((c) => c.id === comment.id) ? atuais : [...atuais, comment],
@@ -168,6 +173,9 @@ export default function TicketDetail() {
         const statusNovo = novo.ticket_status
         setTicket((atual) => (atual ? { ...atual, status: statusNovo } : atual))
       }
+      if (isAdmin && !novo.is_internal && ticket?.assigned_to === null && userId) {
+        setTicket((atual) => (atual ? { ...atual, assigned_to: userId } : atual))
+      }
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail
       setErro(detail || 'Erro ao enviar mensagem. Tente novamente.')
@@ -192,6 +200,22 @@ export default function TicketDetail() {
       setTicket(response.data)
     } catch {
       setErro('Não foi possível atribuir o técnico.')
+    }
+  }
+
+  async function baixarAnexo(anexo: Attachment) {
+    try {
+      const response = await api.get<Blob>(`/anexos/${anexo.id}`, { responseType: 'blob' })
+      const url = URL.createObjectURL(response.data)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = anexo.file_name
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      setErro('Não foi possível baixar o anexo.')
     }
   }
 
@@ -255,13 +279,18 @@ export default function TicketDetail() {
                   <time>{c.created_at ? new Date(c.created_at).toLocaleString('pt-BR') : ''}</time>
                 </div>
                 <p className="msg-body">{c.body}</p>
-                {c.attachments.length > 0 && (
+                {(c.attachments ?? []).length > 0 && (
                   <ul className="msg-attachments">
-                    {c.attachments.map((a) => (
+                    {(c.attachments ?? []).map((a) => (
                       <li key={a.id}>
-                        <a href={`/anexos/${a.id}`} aria-label={`Baixar ${a.file_name}`}>
+                        <button
+                          type="button"
+                          className="attachment-download"
+                          aria-label={`Baixar ${a.file_name}`}
+                          onClick={() => void baixarAnexo(a)}
+                        >
                           <Icon name="attachment" size={14} /> {a.file_name}
-                        </a>
+                        </button>
                         <small>{Math.max(1, Math.round(a.size_bytes / 1024))} KB</small>
                       </li>
                     ))}

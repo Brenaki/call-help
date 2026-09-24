@@ -7,7 +7,6 @@ export default function Users() {
   const [usuarios, setUsuarios] = useState<User[]>([])
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
-  const [senha, setSenha] = useState('')
   const [role, setRole] = useState('comum')
   const [sector, setSector] = useState('')
   const [erro, setErro] = useState('')
@@ -32,13 +31,11 @@ export default function Users() {
       await api.post('/usuarios', {
         name: nome,
         email,
-        password: senha,
         role,
         sector: sector || null,
       })
       setNome('')
       setEmail('')
-      setSenha('')
       setRole('comum')
       setSector('')
       await carregar()
@@ -72,10 +69,7 @@ export default function Users() {
           Email
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </label>
-        <label>
-          Senha
-          <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
-        </label>
+        <p className="field-help">Senha inicial padrão: <strong>123456</strong>. No primeiro login, o usuário deverá alterá-la.</p>
         <label>
           Perfil de acesso
           <select value={role} onChange={(e) => setRole(e.target.value)}>

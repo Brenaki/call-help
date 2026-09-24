@@ -40,6 +40,9 @@ class TicketService:
     async def search(self, termo: str) -> list[Ticket]:
         return await self.ticket_repo.search(termo)
 
+    async def list_options(self) -> dict[str, list[str]]:
+        return await self.ticket_repo.list_options()
+
     async def create(self, dados: TicketCreate, user=None) -> Ticket:
         ticket = Ticket(
             user_id=dados.user_id,

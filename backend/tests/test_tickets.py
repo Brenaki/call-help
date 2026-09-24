@@ -42,7 +42,7 @@ async def test_abrir_chamado(client, db):
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["user_name"] == "Isabelle"
+    assert data["user_name"] == "Usuario"
     assert data["status"] == "aberto"
     assert data["priority"] == "alta"
     assert data["description"] == "Computador nao liga"

@@ -6,7 +6,7 @@ import Brand from './Brand'
 import Icon from './Icon'
 import Notifications from './Notifications'
 
-const titles: Record<string, string> = { '/': 'Visão geral', '/chamados': 'Chamados', '/chamados/novo': 'Abrir chamado', '/equipamentos': 'Equipamentos', '/usuarios': 'Usuários' }
+const titles: Record<string, string> = { '/': 'Visão geral', '/chamados': 'Chamados', '/chamados/novo': 'Abrir chamado', '/equipamentos': 'Equipamentos', '/salas': 'Salas', '/usuarios': 'Usuários' }
 
 export default function Layout() {
   const { role, logout } = useAuth()
@@ -33,7 +33,7 @@ export default function Layout() {
           <NavLink to="/" className={link} end><Icon name="dashboard" />Visão geral</NavLink>
           <NavLink to="/chamados" className={link} end><Icon name="ticket" />Chamados</NavLink>
           <NavLink to="/chamados/novo" className={link}><Icon name="plus" />Abrir chamado</NavLink>
-          {role === 'admin' && <><span className="nav-label">ADMINISTRAÇÃO</span><NavLink to="/equipamentos" className={link}><Icon name="monitor" />Equipamentos</NavLink><NavLink to="/usuarios" className={link}><Icon name="users" />Usuários</NavLink></>}
+          {role === 'admin' && <><span className="nav-label">ADMINISTRAÇÃO</span><NavLink to="/equipamentos" className={link}><Icon name="monitor" />Equipamentos</NavLink><NavLink to="/salas" className={link}><Icon name="building" />Salas</NavLink><NavLink to="/usuarios" className={link}><Icon name="users" />Usuários</NavLink></>}
         </nav>
         <div className="sidebar-note"><Icon name="headset" size={24} /><strong>Tecnologia que apoia.</strong><p>Suporte para o dia a dia de escolas e empresas.</p></div>
         <div className="sidebar-account"><span className="avatar"><Icon name="users" /></span><div><strong>{role === 'admin' ? 'Administrador' : 'Solicitante'}</strong><small>Portal de suporte</small></div><button onClick={handleLogout} className="icon-button" aria-label="Sair" title="Sair"><Icon name="logout" /></button></div>

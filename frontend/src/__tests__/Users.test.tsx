@@ -57,13 +57,11 @@ describe('Users', () => {
 
     await user.type(screen.getByLabelText('Nome'), 'Joao')
     await user.type(screen.getByLabelText('Email'), 'joao@escola.edu')
-    await user.type(screen.getByLabelText('Senha'), '123456')
     await user.click(screen.getByRole('button', { name: /cadastrar/i }))
 
     expect(mockApi.api.post).toHaveBeenCalledWith('/usuarios', {
       name: 'Joao',
       email: 'joao@escola.edu',
-      password: '123456',
       role: 'comum',
       sector: null,
     })

@@ -10,6 +10,9 @@ export interface LoginResponse {
   access_token: string
   token_type: string
   role: string
+  user_id: number
+  name: string
+  must_change_password: boolean
 }
 
 export interface Equipment {
@@ -17,6 +20,20 @@ export interface Equipment {
   name: string
   type: string | null
   localization: string | null
+}
+
+export interface Room {
+  id: number
+  name: string
+  localization: string | null
+  equipment_ids: number[]
+  created_at?: string | null
+}
+
+export interface CatalogOptions {
+  types?: string[]
+  sectors?: string[]
+  localizations: string[]
 }
 
 export interface Ticket {

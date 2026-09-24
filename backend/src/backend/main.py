@@ -10,6 +10,7 @@ from backend.controllers.auth import router as auth_router
 from backend.controllers.conversa import router as conversa_router
 from backend.controllers.equipments import router as equipments_router
 from backend.controllers.notifications import router as notifications_router
+from backend.controllers.rooms import router as rooms_router
 from backend.controllers.tickets import router as tickets_router
 from backend.controllers.users import router as users_router
 from backend.controllers.ws import router as ws_router
@@ -44,6 +45,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(equipments_router)
+app.include_router(rooms_router)
 app.include_router(tickets_router)
 app.include_router(conversa_router)
 app.include_router(attachments_router)

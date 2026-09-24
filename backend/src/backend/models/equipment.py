@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database import Base
 
@@ -17,4 +17,7 @@ class Equipment(Base):
     localization: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now()
+    )
+    rooms: Mapped[list["Room"]] = relationship(
+        secondary="room_equipments", back_populates="equipments", lazy="selectin"
     )

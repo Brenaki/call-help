@@ -50,6 +50,14 @@ async def test_criar_equipamento(client, db):
     assert data["type"] == "Desktop"
     assert data["localization"] == "Laboratorio 2"
 
+    duplicate = await client.post(
+        "/equipamentos",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"name": "computador 02", "type": "Desktop"},
+    )
+    assert duplicate.status_code == 409
+    assert duplicate.json()["detail"] == "Já existe um equipamento com este nome"
+
 
 @pytest.mark.asyncio
 async def test_editar_equipamento(client, db):

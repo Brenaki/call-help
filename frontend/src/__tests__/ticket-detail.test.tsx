@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
-import { render, screen, waitFor, cleanup } from '@testing-library/react'
+import { act, render, screen, waitFor, cleanup } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import TicketDetail from '../pages/TicketDetail'
 import { AuthProvider } from '../context/AuthContext'
@@ -8,10 +8,14 @@ import { RealtimeProvider } from '../context/RealtimeContext'
 
 // WebSocket não existe no jsdom: mock global
 class FakeWebSocket {
+  static instances: FakeWebSocket[] = []
   onopen: (() => void) | null = null
   onmessage: ((event: { data: string }) => void) | null = null
   onclose: ((event: { code: number }) => void) | null = null
   onerror: (() => void) | null = null
+  constructor() {
+    FakeWebSocket.instances.push(this)
+  }
   close() {}
 }
 vi.stubGlobal('WebSocket', FakeWebSocket)
@@ -87,6 +91,7 @@ describe('TicketDetail', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
+    FakeWebSocket.instances = []
   })
   afterEach(cleanup)
 
@@ -172,5 +177,36 @@ describe('TicketDetail', () => {
 
     expect(await screen.findByText(/print\.png/)).toBeInTheDocument()
     expect(screen.getByText(/até 5 ?MB/i)).toBeInTheDocument()
+  })
+
+  it('não quebra ao receber comentário WS sem attachments', async () => {
+    vi.mocked(api.get).mockImplementation(async (url: string) => {
+      if (url === '/chamados/7') return { data: ticket }
+      if (url === '/chamados/7/comentarios') return { data: [] }
+      return { data: [] }
+    })
+    renderDetail('comum')
+    await screen.findAllByText('Projetor não liga')
+
+    act(() => {
+      FakeWebSocket.instances.at(-1)?.onmessage?.({
+        data: JSON.stringify({
+          type: 'comment',
+          ticket_id: 7,
+          comment: {
+            id: 9,
+            ticket_id: 7,
+            author_id: 1,
+            author_name: 'Admin',
+            author_role: 'admin',
+            is_internal: false,
+            body: 'Mensagem recebida em tempo real',
+            created_at: '2026-09-24T12:00:00',
+          },
+        }),
+      })
+    })
+
+    expect(await screen.findByText('Mensagem recebida em tempo real')).toBeInTheDocument()
   })
 })

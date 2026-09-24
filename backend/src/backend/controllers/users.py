@@ -4,12 +4,28 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.database import get_db
-from backend.deps import require_admin
+from backend.deps import get_current_user, require_admin
 from backend.models.user import User
-from backend.schemas.user import UserCreate, UserOut, UserUpdate
+from backend.schemas.user import PasswordChange, UserCreate, UserOut, UserUpdate
 from backend.services.user_service import UserService
 
 router = APIRouter(prefix="/usuarios", tags=["usuarios"])
+
+
+@router.put("/minha-senha")
+async def alterar_minha_senha(
+    dados: PasswordChange,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if len(dados.new_password) < 6:
+        raise HTTPException(status_code=422, detail="A nova senha deve ter ao menos 6 caracteres")
+    ok = await UserService(db).change_own_password(
+        user, dados.current_password, dados.new_password
+    )
+    if not ok:
+        raise HTTPException(status_code=400, detail="Senha atual incorreta")
+    return {"ok": True}
 
 
 @router.get("", response_model=list[UserOut])

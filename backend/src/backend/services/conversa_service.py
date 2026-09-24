@@ -137,6 +137,19 @@ class ConversaService:
 
         old_status = ticket.status
 
+        # O primeiro técnico que responde publicamente assume o chamado.
+        if not is_internal and user.role == "admin" and ticket.assigned_to is None:
+            ticket.assigned_to = user.id
+            self.db.add(ticket)
+            await self.db.commit()
+            await self.db.refresh(ticket)
+            await self._registrar_evento(ticket.id, user, "assignment", None, str(user.id))
+            if ticket.user_id and ticket.user_id != user.id:
+                await self._notificar(
+                    ticket.user_id, ticket, "assignment",
+                    f"Chamado #{ticket.id} assumido por {user.name}",
+                )
+
         comment = await self.comment_repo.create(
             TicketComment(
                 ticket_id=ticket.id,
@@ -227,6 +240,22 @@ class ConversaService:
                             "author_role": user.role,
                             "is_internal": comment.is_internal,
                             "body": comment.body,
+                            # O frontend renderiza anexos diretamente do evento WS.
+                            # Mantenha o mesmo contrato do POST/GET de comentários.
+                            "attachments": [
+                                {
+                                    "id": attachment.id,
+                                    "ticket_id": attachment.ticket_id,
+                                    "comment_id": attachment.comment_id,
+                                    "file_name": attachment.file_name,
+                                    "stored_name": attachment.stored_name,
+                                    "mime_type": attachment.mime_type,
+                                    "size_bytes": attachment.size_bytes,
+                                    "uploaded_by": attachment.uploaded_by,
+                                    "created_at": str(attachment.created_at or ""),
+                                }
+                                for attachment in anexos
+                            ],
                             "created_at": str(comment.created_at or ""),
                         },
                     },

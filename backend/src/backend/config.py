@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # seed de admin no startup
     admin_email: str = "admin@escola.edu"
     admin_password: str = "123456"
+    default_user_password: str = "123456"
 
 
 settings = Settings()

@@ -4,6 +4,8 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.models.ticket import Ticket
+from backend.models.equipment import Equipment
+from backend.models.user import User
 
 
 class TicketRepository:
@@ -59,6 +61,24 @@ class TicketRepository:
         )
         result = await self.db.execute(query)
         return list(result.scalars().all())
+
+    async def list_options(self) -> dict[str, list[str]]:
+        ticket_sectors = await self.db.scalars(
+            select(Ticket.sector).where(Ticket.sector.is_not(None)).distinct()
+        )
+        user_sectors = await self.db.scalars(
+            select(User.sector).where(User.sector.is_not(None)).distinct()
+        )
+        ticket_localizations = await self.db.scalars(
+            select(Ticket.localization).where(Ticket.localization.is_not(None)).distinct()
+        )
+        equipment_localizations = await self.db.scalars(
+            select(Equipment.localization).where(Equipment.localization.is_not(None)).distinct()
+        )
+        return {
+            "sectors": sorted({value for value in [*ticket_sectors.all(), *user_sectors.all()] if value}),
+            "localizations": sorted({value for value in [*ticket_localizations.all(), *equipment_localizations.all()] if value}),
+        }
 
     async def create(self, ticket: Ticket) -> Ticket:
         self.db.add(ticket)

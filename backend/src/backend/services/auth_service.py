@@ -18,4 +18,11 @@ class AuthService:
         if not verificar_senha(senha, user.password_hash):
             return None
         token = criar_jwt(str(user.id), user.role)
-        return {"access_token": token, "token_type": "bearer", "role": user.role}
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "role": user.role,
+            "user_id": user.id,
+            "name": user.name,
+            "must_change_password": user.must_change_password,
+        }

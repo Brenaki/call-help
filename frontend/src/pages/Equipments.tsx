@@ -1,7 +1,7 @@
 import PageHeader from '../components/PageHeader'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
-import type { Equipment } from '../api/types'
+import type { CatalogOptions, Equipment } from '../api/types'
 
 export default function Equipments() {
   const [equipamentos, setEquipamentos] = useState<Equipment[]>([])
@@ -9,11 +9,13 @@ export default function Equipments() {
   const [tipo, setTipo] = useState('')
   const [local, setLocal] = useState('')
   const [erro, setErro] = useState('')
+  const [opcoes, setOpcoes] = useState<CatalogOptions>({ localizations: [], types: [] })
 
   async function carregar() {
     try {
-      const r = await api.get<Equipment[]>('/equipamentos')
+      const [r, options] = await Promise.all([api.get<Equipment[]>('/equipamentos'), api.get<CatalogOptions>('/equipamentos/opcoes')])
       setEquipamentos(r.data)
+      setOpcoes(Array.isArray(options.data) ? { localizations: [], types: [] } : options.data)
     } catch {
       setErro('Erro ao carregar equipamentos')
     }
@@ -36,8 +38,9 @@ export default function Equipments() {
       setTipo('')
       setLocal('')
       await carregar()
-    } catch {
-      setErro('Erro ao cadastrar equipamento')
+    } catch (error: unknown) {
+      const detail = (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+      setErro(detail || 'Erro ao cadastrar equipamento')
     }
   }
 
@@ -64,11 +67,11 @@ export default function Equipments() {
         </label>
         <label>
           Tipo
-          <input placeholder="Ex.: notebook, impressora ou projetor" value={tipo} onChange={(e) => setTipo(e.target.value)} />
+          <><input list="tipos-existentes" placeholder="Ex.: notebook, impressora ou projetor" value={tipo} onChange={(e) => setTipo(e.target.value)} /><datalist id="tipos-existentes">{opcoes.types?.map((value) => <option key={value} value={value} />)}</datalist></>
         </label>
         <label>
           Local
-          <input placeholder="Ex.: laboratório 2 ou escritório Central" value={local} onChange={(e) => setLocal(e.target.value)} />
+          <><input list="locais-existentes" placeholder="Ex.: laboratório 2 ou escritório Central" value={local} onChange={(e) => setLocal(e.target.value)} /><datalist id="locais-existentes">{opcoes.localizations.map((value) => <option key={value} value={value} />)}</datalist></>
         </label>
         <button type="submit" className="btn-primario">Cadastrar</button>
       </form>

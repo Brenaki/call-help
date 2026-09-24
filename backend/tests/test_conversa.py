@@ -130,7 +130,7 @@ async def test_admin_ve_todos_e_scope_meus(client, db):
 @pytest.mark.asyncio
 async def test_primeiro_comentario_ti_move_para_em_andamento(client, db):
     token_soli, id_soli = await criar_usuario_e_logar(client, db, "cv6@escola.edu")
-    token_admin, _ = await criar_usuario_e_logar(client, db, "cv6admin@escola.edu", role="admin")
+    token_admin, admin_id = await criar_usuario_e_logar(client, db, "cv6admin@escola.edu", role="admin")
     ticket_id = await criar_chamado(client, token_soli, id_soli)
 
     response = await client.post(
@@ -140,6 +140,8 @@ async def test_primeiro_comentario_ti_move_para_em_andamento(client, db):
     )
     assert response.status_code == 201
     assert response.json()["ticket_status"] == "em_andamento"
+    ticket = await client.get(f"/chamados/{ticket_id}", headers={"Authorization": f"Bearer {token_admin}"})
+    assert ticket.json()["assigned_to"] == admin_id
 
 
 @pytest.mark.asyncio

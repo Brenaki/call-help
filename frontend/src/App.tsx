@@ -10,6 +10,8 @@ import TicketsList from './pages/TicketsList'
 import TicketDetail from './pages/TicketDetail'
 import Equipments from './pages/Equipments'
 import Users from './pages/Users'
+import Rooms from './pages/Rooms'
+import ChangePassword from './pages/ChangePassword'
 
 export default function App() {
   return (
@@ -18,6 +20,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/alterar-senha" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
             <Route
               element={
                 <ProtectedRoute>
@@ -30,6 +33,7 @@ export default function App() {
               <Route path="/chamados/novo" element={<NewTicket />} />
               <Route path="/chamados/:id" element={<TicketDetail />} />
               <Route path="/equipamentos" element={<Equipments />} />
+              <Route path="/salas" element={<Rooms />} />
               <Route path="/usuarios" element={<Users />} />
             </Route>
           </Routes>

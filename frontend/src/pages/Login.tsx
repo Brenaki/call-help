@@ -17,8 +17,8 @@ export default function Login() {
     setErro('')
     setEnviando(true)
     try {
-      await login(email, senha)
-      navigate('/')
+      const data = await login(email, senha)
+      navigate(data.must_change_password ? '/alterar-senha' : '/')
     } catch {
       setErro('Não foi possível entrar. Verifique seu e-mail e senha e tente novamente.')
     } finally {

@@ -10,6 +10,7 @@ Todas as telas, exceto `/login`, exigem sessão autenticada. O menu lateral cont
 | `/chamados` | Lista | busca, filtros, escopo Meus/Todos e badges dos cinco status |
 | `/chamados/:id` | Detalhe | conversa, histórico, anexos, ações e atribuição |
 | `/equipamentos` | Equipamentos | CRUD administrativo |
+| `/salas` | Salas | associa várias salas a vários equipamentos |
 | `/usuarios` | Usuários | CRUD administrativo |
 
 ## Detalhe do chamado
@@ -17,6 +18,10 @@ Todas as telas, exceto `/login`, exigem sessão autenticada. O menu lateral cont
 A tela centraliza o atendimento: mensagem inicial, conversa cronológica, histórico de eventos e painel de ações. Administradores podem atribuir o técnico, enviar nota interna e executar as transições técnicas. O solicitante vê somente conteúdo público e, após `resolvido`, recebe a ação “Confirmar e fechar”.
 
 O compositor aceita arquivos por seleção, arrastar/soltar e colagem de imagem. A interface avisa o limite de 5 MB e apresenta links de download para arquivos anexados.
+
+## Cadastro inteligente
+
+Nos formulários de equipamento e chamado, campos de tipo, local e setor oferecem valores já cadastrados, mas permanecem livres para registrar um valor novo. Ao abrir chamado, solicitantes comuns têm o nome preenchido pela conta autenticada; a equipe de TI pode selecionar outro solicitante. O cadastro de usuário informa a senha padrão e a troca obrigatória no primeiro login.
 
 ## Tempo real e notificações
 

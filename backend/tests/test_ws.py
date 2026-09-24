@@ -1,5 +1,7 @@
 """Testes do WebSocket /ws e do seed de admin."""
 
+import io
+
 import pytest
 
 from backend.models.user import User
@@ -79,6 +81,7 @@ async def test_ws_recebe_evento_de_comentario(client, db):
                 f"/chamados/{ticket_id}/comentarios",
                 headers={"Authorization": f"Bearer {token_admin}"},
                 data={"body": "estamos verificando", "is_internal": "false"},
+                files={"files": ("diagnostico.txt", io.BytesIO(b"log"), "text/plain")},
             )
 
             # solicitante recebe push do comentário (notificação pode chegar antes)
@@ -90,6 +93,7 @@ async def test_ws_recebe_evento_de_comentario(client, db):
                     break
             comment_event = next(e for e in eventos if e["type"] == "comment")
             assert comment_event["ticket_id"] == ticket_id
+            assert comment_event["comment"]["attachments"][0]["file_name"] == "diagnostico.txt"
 
 
 @pytest.mark.asyncio

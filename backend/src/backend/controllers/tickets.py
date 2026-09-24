@@ -8,8 +8,19 @@ from backend.deps import get_current_user
 from backend.models.user import User
 from backend.schemas.ticket import TicketCreate, TicketOut, TicketUpdate
 from backend.services.ticket_service import TicketService
+from backend.services.equipment_service import EquipmentService
+from backend.services.user_service import UserService
 
 router = APIRouter(prefix="/chamados", tags=["chamados"])
+
+
+@router.get("/opcoes")
+async def opcoes(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    """Valores existentes para campos livres do formulário de chamado."""
+    return await TicketService(db).list_options()
 
 
 @router.get("", response_model=list[TicketOut])
@@ -74,7 +85,15 @@ async def criar(
     user: User = Depends(get_current_user),
 ):
     service = TicketService(db)
-    dados.user_id = user.id
+    # O solicitante comum sempre é a própria conta. A TI pode abrir em nome
+    # de outro usuário, mas o nome é obtido do cadastro, nunca do formulário.
+    solicitante = user
+    if user.role == "admin" and dados.user_id and dados.user_id != user.id:
+        solicitante = await UserService(db).get_by_id(dados.user_id)
+        if solicitante is None:
+            raise HTTPException(status_code=422, detail="Solicitante nao encontrado")
+    dados.user_id = solicitante.id
+    dados.user_name = solicitante.name
     return await service.create(dados, user)
 
 
