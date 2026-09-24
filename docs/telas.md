@@ -1,75 +1,27 @@
-# Telas do frontend
+# Telas e experiência de uso
 
-O frontend tem 6 telas principais. Todas são protegidas por login, exceto
-a própria tela de login.
+Todas as telas, exceto `/login`, exigem sessão autenticada. O menu lateral contém Dashboard, Novo chamado, Chamados e, para admin, Equipamentos e Usuários. Em tela estreita ele se torna um drawer, evitando rolagem horizontal.
 
-## 1. Login (`/login`)
+| Rota | Tela | Recursos principais |
+|---|---|---|
+| `/login` | Login | autenticação JWT |
+| `/` | Dashboard | cinco cartões por status, recentes e seção “Aguardando você” |
+| `/chamados/novo` | Novo chamado | formulário com prioridade, equipamento e localização |
+| `/chamados` | Lista | busca, filtros, escopo Meus/Todos e badges dos cinco status |
+| `/chamados/:id` | Detalhe | conversa, histórico, anexos, ações e atribuição |
+| `/equipamentos` | Equipamentos | CRUD administrativo |
+| `/usuarios` | Usuários | CRUD administrativo |
 
-Tela inicial. Campos email e senha. Ao logar com sucesso, guarda o token
-JWT e redireciona para o dashboard.
+## Detalhe do chamado
 
-## 2. Dashboard (`/`)
+A tela centraliza o atendimento: mensagem inicial, conversa cronológica, histórico de eventos e painel de ações. Administradores podem atribuir o técnico, enviar nota interna e executar as transições técnicas. O solicitante vê somente conteúdo público e, após `resolvido`, recebe a ação “Confirmar e fechar”.
 
-Mostra um resumo dos chamados:
+O compositor aceita arquivos por seleção, arrastar/soltar e colagem de imagem. A interface avisa o limite de 5 MB e apresenta links de download para arquivos anexados.
 
-- Quantidade de chamados abertos
-- Quantidade em andamento
-- Quantidade resolvidos
+## Tempo real e notificações
 
-Também pode listar os chamados recentes.
+O topo mostra o estado da conexão (“Conectado”, “Conectando”, “Reconectando” ou “Fechado”). O sino apresenta a quantidade de notificações não lidas recebidas pelo WebSocket. Ao abrir uma notificação, o usuário é direcionado ao chamado e o aviso é marcado como lido.
 
-## 3. Abrir chamado (`/chamados/novo`)
+## Responsividade e acessibilidade
 
-Formulário para abrir um chamado novo. Campos:
-
-- Nome do usuário (user_name)
-- Equipamento (select com os equipamentos cadastrados)
-- Local
-- Setor
-- Tipo do problema
-- Descrição
-- Prioridade (baixa / media / alta)
-- Data
-
-Ao submeter, cria o chamado e volta para a lista.
-
-## 4. Lista de chamados (`/chamados`)
-
-Lista todos os chamados em uma tabela. Mostra:
-
-- ID
-- Usuário
-- Equipamento
-- Setor
-- Status
-- Prioridade
-- Data
-
-Tem um campo de busca para pesquisar chamados e um filtro por status.
-
-## 5. Equipamentos (`/equipamentos`)
-
-Só admin acessa. Lista os equipamentos cadastrados e permite:
-
-- Cadastrar equipamento novo
-- Editar equipamento
-- Remover equipamento
-
-## 6. Usuários (`/usuarios`)
-
-Só admin acessa. Lista os usuários e permite:
-
-- Cadastrar usuário novo (com papel admin ou comum)
-- Editar usuário
-- Remover usuário
-
-## Navegação
-
-Um menu lateral (sidebar) aparece em todas as telas logadas com links para:
-
-- Dashboard
-- Abrir chamado
-- Lista de chamados
-- Equipamentos (só aparece se for admin)
-- Usuários (só aparece se for admin)
-- Sair
+Em dispositivos móveis, a grade do detalhe passa para uma coluna, o painel lateral vira drawer e a conversa permanece legível sem overflow horizontal. A aplicação usa rótulos, regiões e botões semânticos nas interações principais para melhorar o uso com leitor de tela e teclado.

@@ -18,6 +18,9 @@ class Ticket(Base):
     equipment_id: Mapped[int | None] = mapped_column(
         ForeignKey("equipments.id"), nullable=True
     )
+    assigned_to: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
     user_name: Mapped[str] = mapped_column(String(100), nullable=False)
     equipment_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     sector: Mapped[str | None] = mapped_column(String(50), nullable=True)
@@ -28,11 +31,21 @@ class Ticket(Base):
         Enum("baixa", "media", "alta", name="priority"), default="media"
     )
     status: Mapped[str] = mapped_column(
-        Enum("aberto", "em_andamento", "resolvido", name="ticket_status"),
+        Enum(
+            "aberto",
+            "em_andamento",
+            "aguardando_cliente",
+            "resolvido",
+            "fechado",
+            name="ticket_status",
+        ),
         default="aberto",
     )
-    technical_lead: Mapped[str | None] = mapped_column(String(100), nullable=True)
     date: Mapped[date | None] = mapped_column(Date, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, server_default=func.now()
     )
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime, onupdate=func.now(), nullable=True
+    )
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

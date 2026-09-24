@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { User } from '../api/types'
@@ -16,7 +17,7 @@ export default function Users() {
       const r = await api.get<User[]>('/usuarios')
       setUsuarios(r.data)
     } catch {
-      setErro('Erro ao carregar usuarios')
+      setErro('Erro ao carregar usuários')
     }
   }
 
@@ -42,7 +43,7 @@ export default function Users() {
       setSector('')
       await carregar()
     } catch {
-      setErro('Erro ao cadastrar usuario')
+      setErro('Erro ao cadastrar usuário')
     }
   }
 
@@ -51,17 +52,18 @@ export default function Users() {
       await api.delete(`/usuarios/${id}`)
       await carregar()
     } catch {
-      setErro('Erro ao remover usuario')
+      setErro('Erro ao remover usuário')
     }
   }
 
   return (
     <div>
-      <h1>Usuarios</h1>
-      {erro && <p className="erro">{erro}</p>}
+      <PageHeader title="Usuários" description="Gerencie o acesso de colaboradores, professores e administradores à central de suporte." />
+      {erro && <p className="erro" role="alert">{erro}</p>}
 
+      <div className="management-grid">
       <form onSubmit={criar} className="formulario">
-        <h2>Novo Usuario</h2>
+        <h2>Novo Usuário</h2>
         <label>
           Nome
           <input value={nome} onChange={(e) => setNome(e.target.value)} required />
@@ -75,31 +77,31 @@ export default function Users() {
           <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} required />
         </label>
         <label>
-          Papel
+          Perfil de acesso
           <select value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="comum">Comum</option>
-            <option value="admin">Admin</option>
+            <option value="comum">Solicitante</option>
+            <option value="admin">Administrador</option>
           </select>
         </label>
         <label>
           Setor
-          <input value={sector} onChange={(e) => setSector(e.target.value)} />
+          <input placeholder="Ex.: pedagógico, secretaria ou financeiro" value={sector} onChange={(e) => setSector(e.target.value)} />
         </label>
         <button type="submit" className="btn-primario">Cadastrar</button>
       </form>
 
       {usuarios.length === 0 ? (
-        <p>Nenhum usuario cadastrado.</p>
+        <p className="empty-state panel">Nenhum usuário cadastrado.</p>
       ) : (
-        <table className="tabela">
+        <div className="table-scroll panel" role="region" aria-label="Registros cadastrados" tabIndex={0}><table className="tabela">
           <thead>
             <tr>
               <th>ID</th>
               <th>Nome</th>
               <th>Email</th>
-              <th>Papel</th>
+              <th>Perfil</th>
               <th>Setor</th>
-              <th></th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +110,7 @@ export default function Users() {
                 <td>{u.id}</td>
                 <td>{u.name}</td>
                 <td>{u.email}</td>
-                <td>{u.role}</td>
+                <td><span className="role-badge">{u.role === 'admin' ? 'Administrador' : 'Solicitante'}</span></td>
                 <td>{u.sector ?? '-'}</td>
                 <td>
                   <button className="btn-remover" onClick={() => remover(u.id)}>
@@ -118,8 +120,9 @@ export default function Users() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
+      </div>
     </div>
   )
 }

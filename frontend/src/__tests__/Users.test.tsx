@@ -31,7 +31,7 @@ describe('Users', () => {
   it('mostra formulario de cadastro', () => {
     vi.mocked(mockApi.api.get).mockResolvedValue({ data: [] })
     renderUsers()
-    expect(screen.getByText('Novo Usuario')).toBeInTheDocument()
+    expect(screen.getByText('Novo Usuário')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /cadastrar/i })).toBeInTheDocument()
   })
 

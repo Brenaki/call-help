@@ -2,6 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import Dashboard from '../pages/Dashboard'
+import { AuthProvider } from '../context/AuthContext'
 
 vi.mock('../api/client', () => ({
   api: {
@@ -11,11 +12,15 @@ vi.mock('../api/client', () => ({
 
 const mockApi = await import('../api/client')
 
-function renderDashboard() {
+function renderDashboard(role = 'comum') {
+  localStorage.setItem('token', 'tok')
+  localStorage.setItem('role', role)
   return render(
-    <MemoryRouter>
-      <Dashboard />
-    </MemoryRouter>,
+    <AuthProvider>
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    </AuthProvider>,
   )
 }
 
@@ -25,14 +30,16 @@ describe('Dashboard', () => {
     localStorage.clear()
   })
 
-  it('mostra os 3 cards de status', async () => {
+  it('mostra os 5 cards de status', async () => {
     vi.mocked(mockApi.api.get).mockResolvedValue({ data: [] })
     renderDashboard()
 
     await waitFor(() => {
       expect(screen.getByText('Abertos')).toBeInTheDocument()
-      expect(screen.getByText('Em Andamento')).toBeInTheDocument()
+      expect(screen.getByText('Em andamento')).toBeInTheDocument()
+      expect(screen.getByText('Aguardando cliente')).toBeInTheDocument()
       expect(screen.getByText('Resolvidos')).toBeInTheDocument()
+      expect(screen.getByText('Fechados')).toBeInTheDocument()
     })
   })
 
@@ -55,17 +62,19 @@ describe('Dashboard', () => {
     })
   })
 
-  it('mostra tabela de chamados recentes', async () => {
+  it('mostra chamados aguardando o solicitante (comum)', async () => {
     vi.mocked(mockApi.api.get).mockResolvedValue({
       data: [
-        { id: 1, status: 'aberto', user_name: 'Isabelle', description: 'Computador nao liga', priority: 'alta' },
+        { id: 1, status: 'resolvido', user_name: 'Isabelle', description: 'Computador nao liga', priority: 'alta' },
+        { id: 2, status: 'aberto', user_name: 'Bruno', description: 'Mouse quebrado', priority: 'media' },
       ],
     })
-    renderDashboard()
+    renderDashboard('comum')
 
     await waitFor(() => {
-      expect(screen.getByText('Isabelle')).toBeInTheDocument()
+      expect(screen.getByText('Aguardando você')).toBeInTheDocument()
       expect(screen.getByText('Computador nao liga')).toBeInTheDocument()
+      expect(screen.queryByText('Mouse quebrado')).not.toBeInTheDocument()
     })
   })
 })

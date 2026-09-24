@@ -40,7 +40,7 @@ describe('NewTicket', () => {
     expect(screen.getByText('Local')).toBeInTheDocument()
     expect(screen.getByText('Setor')).toBeInTheDocument()
     expect(screen.getByText('Tipo do Problema')).toBeInTheDocument()
-    expect(screen.getByText('Descricao')).toBeInTheDocument()
+    expect(screen.getByText('Descrição')).toBeInTheDocument()
     expect(screen.getByText('Prioridade')).toBeInTheDocument()
   })
 
@@ -58,7 +58,7 @@ describe('NewTicket', () => {
     await user.type(screen.getByLabelText('Nome'), 'Isabelle')
     await user.type(screen.getByLabelText('Local'), 'Laboratorio 2')
     await user.type(screen.getByLabelText('Setor'), 'Informatica')
-    await user.type(screen.getByLabelText('Descricao'), 'Computador nao liga')
+    await user.type(screen.getByLabelText('Descrição'), 'Computador nao liga')
     await user.click(screen.getByRole('button', { name: /abrir chamado/i }))
 
     expect(api.post).toHaveBeenCalledWith('/chamados', expect.objectContaining({

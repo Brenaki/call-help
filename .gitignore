@@ -11,6 +11,10 @@ htmlcov/
 *.db
 *.sqlite
 
+# Uploads de anexos (volume docker)
+backend/uploads/
+uploads/
+
 # Node
 node_modules/
 dist/
@@ -31,6 +35,9 @@ dist/
 
 # Docker
 docker-compose.override.yml
+
+# Artefatos temporários da automação de navegador
+.playwright-mcp/
 
 # OS
 Thumbs.db

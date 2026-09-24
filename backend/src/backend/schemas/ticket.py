@@ -20,7 +20,6 @@ class TicketCreate(BaseModel):
 
 class TicketUpdate(BaseModel):
     status: str | None = None
-    technical_lead: str | None = None
     priority: str | None = None
 
 
@@ -28,6 +27,7 @@ class TicketOut(BaseModel):
     id: int
     user_id: int | None
     equipment_id: int | None
+    assigned_to: int | None
     user_name: str
     equipment_name: str | None
     sector: str | None
@@ -36,9 +36,10 @@ class TicketOut(BaseModel):
     description: str
     priority: str
     status: str
-    technical_lead: str | None
     date: str | None
     created_at: datetime | None
+    updated_at: datetime | None
+    closed_at: datetime | None
 
     model_config = {"from_attributes": True}
 

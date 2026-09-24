@@ -1,72 +1,50 @@
-# Banco de dados - MariaDB
+# Banco de dados — MariaDB
 
-## Tabelas
+## Entidades principais
 
-### users (usuários)
-
-Guarda as pessoas que usam o sistema.
-
-| campo          | tipo                          | descrição                    |
-|----------------|-------------------------------|------------------------------|
-| id             | INT PK AUTO_INCREMENT         | identificador                |
-| name           | VARCHAR(100) NOT NULL         | nome do usuário              |
-| email          | VARCHAR(150) UNIQUE NOT NULL  | usado no login               |
-| password_hash  | VARCHAR(255) NOT NULL         | senha com hash bcrypt        |
-| role           | ENUM('admin','comum')         | admin cadastra, comum abre   |
-| sector         | VARCHAR(50)                   | setor ex: Informatica        |
-| created_at     | DATETIME DEFAULT NOW()         | quando cadastrou             |
-
-### equipments (equipamentos)
-
-| campo         | tipo                          | descrição                    |
-|---------------|-------------------------------|------------------------------|
-| id            | INT PK AUTO_INCREMENT         | identificador                |
-| name          | VARCHAR(100) NOT NULL         | ex: Computador da sala 2     |
-| type          | VARCHAR(50)                   | ex: Desktop, Notebook        |
-| localization  | VARCHAR(100)                  | ex: Laboratorio 2            |
-| created_at    | DATETIME DEFAULT NOW()         | quando cadastrou             |
-
-### tickets (chamados)
-
-| campo           | tipo                                          | descrição                       |
-|-----------------|-----------------------------------------------|---------------------------------|
-| id              | INT PK AUTO_INCREMENT                         | identificador                   |
-| user_id         | INT FK → users.id                             | quem abriu                      |
-| equipment_id    | INT FK → equipments.id NULL                   | equipamento com problema         |
-| user_name       | VARCHAR(100)                                  | nome do usuário (cópia)         |
-| equipment_name   | VARCHAR(100)                                  | nome do equipamento (cópia)     |
-| sector          | VARCHAR(50)                                   | setor                           |
-| localization    | VARCHAR(100)                                  | local                           |
-| problem_type    | VARCHAR(80)                                   | tipo do problema                |
-| description     | TEXT                                          | descrição do problema           |
-| priority        | ENUM('baixa','media','alta')                  | prioridade                      |
-| status          | ENUM('aberto','em_andamento','resolvido')     | status atual                    |
-| technical_lead  | VARCHAR(100) NULL                             | técnico responsável             |
-| date            | DATE                                          | data de abertura                |
-| created_at      | DATETIME DEFAULT NOW()                        | timestamp                       |
+| Tabela | Finalidade |
+|---|---|
+| `users` | pessoas autenticadas, papel e setor |
+| `equipments` | equipamentos cadastrados |
+| `tickets` | chamado e seu estado atual |
+| `ticket_comments` | conversa pública e notas internas |
+| `attachments` | metadados de arquivos enviados em comentários |
+| `ticket_events` | histórico auditável de status e atribuição |
+| `notifications` | avisos persistidos e estado de leitura |
 
 ## Relacionamentos
 
+```text
+users 1 ──< tickets (user_id: solicitante)
+users 1 ──< tickets (assigned_to: técnico)
+equipments 1 ──< tickets
+tickets 1 ──< ticket_comments 1 ──< attachments
+tickets 1 ──< ticket_events
+tickets 1 ──< notifications
+users 1 ──< ticket_comments, ticket_events e notifications
 ```
-users 1 ──────< N tickets
-equipments 1 ──< N tickets
-```
 
-Um usuário pode abrir vários chamados. Um equipamento pode aparecer em
-vários chamados. Cada chamado pertence a um usuário e (opcionalmente) a
-um equipamento.
+## Campos relevantes de `tickets`
 
-## Migrations
+Além de descrição, prioridade, setor, local e equipamento, o chamado possui `user_id`, `assigned_to`, `status`, `created_at`, `updated_at` e `closed_at`. Os cinco valores possíveis de `status` são `aberto`, `em_andamento`, `aguardando_cliente`, `resolvido` e `fechado`.
 
-As tabelas são criadas com Alembic. Para gerar uma migration nova:
+`ticket_comments.is_internal` protege observações exclusivas da equipe de TI. `attachments` guarda nome original, nome interno, tipo MIME, tamanho, autor e ligação com chamado/comentário; o conteúdo fica fora do banco, no provider de armazenamento.
+
+## Integridade e histórico
+
+As tabelas de comentário, eventos, anexos e notificações usam chaves estrangeiras para ticket e/ou usuário. Ao remover um chamado, comentários, eventos, anexos e notificações associados são removidos por cascata. O histórico não depende do texto exibido na interface: cada mudança de status ou atribuição gera um registro em `ticket_events`.
+
+## Migration
+
+A migration `12c283bfa408_adiciona_conversa_eventos_anexos_.py` adiciona as entidades de conversa, anexos, eventos e notificações, a atribuição de técnico e os dois novos estados do chamado.
 
 ```bash
 cd backend
-uv run alembic revision --autogenerate -m "descreve a mudanca"
+uv run alembic upgrade head
 ```
 
-Para aplicar as migrations no banco:
+Para criar uma alteração futura:
 
 ```bash
-uv run alembic upgrade head
+uv run alembic revision --autogenerate -m "descreve a mudanca"
 ```

@@ -2,51 +2,44 @@
 
 ## Visão geral
 
-```
-┌─────────────┐      HTTP/JSON      ┌─────────────┐      SQL       ┌──────────┐
-│  frontend   │  ──────────────▶   │  backend   │  ──────────▶  │  MariaDB │
-│  (React)    │   ◀──────────────  │ (FastAPI)  │  ◄──────────   │          │
-└─────────────┘                    └─────────────┘                └──────────┘
-```
-
-O frontend faz requisições para o backend, que conversa com o banco de dados.
-A autenticação usa JWT: o login devolve um token que o frontend manda nas
-próximas requisições.
-
-## Padrão MVC no backend
-
-O backend segue o MVC adaptado para API:
-
-| Camada       | Pasta             | O que faz                                     |
-|--------------|-------------------|-----------------------------------------------|
-| **Model**    | `models/`         | Tabelas do banco (SQLAlchemy ORM)             |
-| **View**     | `controllers/`    | Rotas do FastAPI que recebem e respondem JSON |
-| **Controller**| `services/`      | Regras de negócio (valida, calcula, decide)    |
-| **Repository**| `repositories/`   | Acesso ao banco (isola o ORM do service)     |
-| **Schema**   | `schemas/`        | Pydantic - valida entrada e saída de dados    |
-
-Fluxo de uma requisição:
-
-```
-request → controller → service → repository → model → banco
-                                                 ↓
-response ← controller ← service ← repository ← model ← banco
+```text
+Navegador (React)
+       │ HTTP/JSON e WebSocket
+       ▼
+nginx (frontend, porta 8080)
+       │ /api/* e /api/ws
+       ▼
+FastAPI (backend, porta 8000) ───── SQL assíncrono ─────► MariaDB 11
+       │
+       └── volume Docker para anexos
 ```
 
-Exemplo: criar um chamado
+Em desenvolvimento, o frontend pode acessar a API em `http://localhost:8000`. No ambiente Docker, `VITE_API_URL=/api` faz o nginx encaminhar HTTP para o backend e atualizar a conexão WebSocket em `/api/ws`.
 
-1. `POST /chamados` chega no `controllers/tickets.py`
-2. O controller valida os dados com o schema Pydantic
-3. Chama `services/ticket_service.py` que aplica a regra de negócio
-4. O service usa `repositories/ticket_repo.py` para salvar no banco
-5. O repository faz o INSERT usando o model `models/ticket.py`
-6. A resposta volta como JSON
+## Backend: MVC adaptado para API
 
-## Autenticação
+| Camada | Pasta | Responsabilidade |
+|---|---|---|
+| Model | `models/` | mapeamento ORM das tabelas |
+| Controller (rotas) | `controllers/` | recebe a requisição e devolve a resposta HTTP/WS |
+| Service | `services/` | regras de negócio, permissões, notificações e transições |
+| Repository | `repositories/` | consultas e persistência com SQLAlchemy |
+| Schema | `schemas/` | validação e serialização com Pydantic |
 
-- Login com email e senha
-- Senha é guardada com hash bcrypt (nunca em texto puro)
-- Login retorna um token JWT com 120 minutos de validade
-- O token guarda o id do usuário e o papel (admin ou comum)
-- Rotas protegidas exigem o token no header: `Authorization: Bearer <token>`
-- Algumas rotas (cadastrar usuários e equipamentos) exigem papel admin
+Fluxo: `requisição → controller → service → repository → model → MariaDB`. Essa separação reduz o acoplamento e torna regras como a máquina de estados testáveis sem depender da tela.
+
+## Autenticação e autorização
+
+O login compara a senha com hash bcrypt e devolve um JWT com identificador e papel do usuário. O token é enviado em `Authorization: Bearer <token>` para HTTP e no parâmetro `token` da conexão WebSocket.
+
+- Usuário `comum`: vê apenas seus chamados, comentários públicos e pode confirmar o fechamento de um chamado resolvido.
+- Usuário `admin` (equipe de TI): vê todos os chamados, administra usuários/equipamentos, atribui técnicos, cria notas internas e realiza transições técnicas.
+- O seed cria o administrador configurado em `ADMIN_EMAIL` e `ADMIN_PASSWORD` somente quando ele ainda não existe.
+
+## Tempo real e notificações
+
+O `ConnectionManager` mantém conexões por usuário. O backend envia eventos `comment`, `status_change`, `assignment`, `notification` e `unread_count` aos destinatários pertinentes. O cliente React mostra o estado da conexão e tenta reconectar a cada 10 segundos; se receber o fechamento 4401, remove o token expirado e retorna ao login. Não há polling.
+
+## Anexos
+
+`StorageProvider` é uma interface para armazenamento. A implementação atual é local e persiste no volume `uploads_data`; o contrato permite acrescentar S3 sem alterar a regra de negócio. O servidor gera nome interno UUID, impede path traversal e só libera download a admin, autor do upload ou dono do chamado.

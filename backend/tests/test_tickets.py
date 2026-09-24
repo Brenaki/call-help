@@ -106,11 +106,11 @@ async def test_alterar_status_chamado(client, db):
     response = await client.put(
         f"/chamados/{chamado_id}",
         headers={"Authorization": f"Bearer {token}"},
-        json={"status": "em_andamento", "technical_lead": "Joao"},
+        json={"status": "em_andamento", "priority": "alta"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "em_andamento"
-    assert response.json()["technical_lead"] == "Joao"
+    assert response.json()["priority"] == "alta"
 
 
 @pytest.mark.asyncio

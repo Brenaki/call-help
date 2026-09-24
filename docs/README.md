@@ -1,25 +1,34 @@
-# Documentação - Call Help
+# Documentação — Call Help
 
-Sistema de chamados de TI desenvolvido como projeto escolar.
+O Call Help é um sistema web para registrar e acompanhar chamados de suporte de TI em escolas e empresas. O solicitante abre e acompanha o chamado; a equipe de TI conversa, atribui o atendimento e registra a resolução em tempo real.
 
 ## Índice
 
-- [Arquitetura](arquitetura.md) - como o projeto está organizado (MVC)
-- [Banco de dados](banco-de-dados.md) - tabelas e relacionamentos
-- [API](api-endpoints.md) - rotas do backend
-- [Telas](telas.md) - telas do frontend
-- [Docker](docker.md) - como rodar com docker-compose
-- [TDD](tdd.md) - como rodar os testes
+- [Arquitetura](arquitetura.md) — componentes, MVC, autenticação e tempo real
+- [Banco de dados](banco-de-dados.md) — tabelas, relacionamentos e migration
+- [API](api-endpoints.md) — contratos HTTP, WebSocket, permissões e transições
+- [Telas](telas.md) — fluxos e comportamento responsivo do frontend
+- [Docker](docker.md) — execução integrada e variáveis de ambiente
+- [TDD](tdd.md) — estratégia e comandos de testes
+- [Validação](validacao.md) — evidências de teste integrado e roteiro de demonstração
 
-## Resumo
+## Tecnologias
 
-O sistema ajuda a gerenciar chamados de TI. Um usuário abre um chamado
-quando algum equipamento dá problema, e o técnico responsável acompanha
-até resolver.
+| Camada | Tecnologia |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, Vitest |
+| Backend | Python 3.13, FastAPI, SQLAlchemy assíncrono, Pydantic |
+| Banco | MariaDB 11, Alembic |
+| Autenticação | JWT e bcrypt |
+| Infraestrutura | Docker Compose, nginx |
 
-Tem duas partes:
+## Estrutura do repositório
 
-- **backend/** - API feita em FastAPI (Python) que segue o padrão MVC
-- **frontend/** - Telas feitas em React com Vite
+```text
+backend/    API FastAPI organizada em MVC
+frontend/   SPA React
+docs/       documentação do projeto
+docker-compose.yml  orquestra banco, API e interface
+```
 
-O banco de dados é MariaDB e tudo roda junto com docker-compose.
+Para iniciar o sistema, consulte [Docker](docker.md). Para a apresentação do TCC, a sequência sugerida está em [Validação](validacao.md).

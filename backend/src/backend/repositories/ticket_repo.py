@@ -17,7 +17,11 @@ class TicketRepository:
         return result.scalar_one_or_none()
 
     async def list_all(
-        self, status: str | None = None, user_id: int | None = None, sector: str | None = None
+        self,
+        status: str | None = None,
+        user_id: int | None = None,
+        sector: str | None = None,
+        termo: str | None = None,
     ) -> list[Ticket]:
         query = select(Ticket).order_by(Ticket.id.desc())
         if status:
@@ -26,6 +30,16 @@ class TicketRepository:
             query = query.where(Ticket.user_id == user_id)
         if sector:
             query = query.where(Ticket.sector == sector)
+        if termo:
+            like = f"%{termo}%"
+            query = query.where(
+                or_(
+                    Ticket.description.ilike(like),
+                    Ticket.user_name.ilike(like),
+                    Ticket.problem_type.ilike(like),
+                    Ticket.equipment_name.ilike(like),
+                )
+            )
         result = await self.db.execute(query)
         return list(result.scalars().all())
 

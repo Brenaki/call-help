@@ -11,5 +11,18 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 120
 
+    # storage de anexos: "local" hoje, "s3" reservado para o futuro
+    storage_backend: str = "local"
+    upload_dir: str = "./uploads"
+    max_upload_mb: int = 5
+    # reservado para S3 (nao usado ainda)
+    s3_bucket: str = ""
+    s3_endpoint: str = ""
+    s3_region: str = ""
+
+    # seed de admin no startup
+    admin_email: str = "admin@escola.edu"
+    admin_password: str = "123456"
+
 
 settings = Settings()

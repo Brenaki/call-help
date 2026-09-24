@@ -1,6 +1,8 @@
 """Configuração do pytest: fixtures de banco e cliente async."""
 
 import asyncio
+import os
+import tempfile
 from collections.abc import AsyncGenerator
 
 import pytest
@@ -14,8 +16,11 @@ from sqlalchemy.ext.asyncio import (
 
 from backend.database import Base, get_db
 from backend.main import app
+from backend.services.storage import set_storage
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+
+os.environ.setdefault("SKIP_SEED", "1")
 
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
 TestSession = async_sessionmaker(test_engine, expire_on_commit=False)
@@ -29,13 +34,26 @@ def event_loop():
 
 
 @pytest_asyncio.fixture(autouse=True)
-async def setup_db():
+async def setup_db(tmp_path):
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture(autouse=True)
+def storage_tmp():
+    """Storage isolado por teste."""
+    diretorio = tempfile.mkdtemp(prefix="uploads_test_")
+    from backend.services.storage import LocalStorageProvider
+
+    set_storage(LocalStorageProvider(diretorio))
+    yield diretorio
+    for nome in os.listdir(diretorio):
+        os.remove(os.path.join(diretorio, nome))
+    os.rmdir(diretorio)
 
 
 async def override_get_db() -> AsyncGenerator[AsyncSession, None]:

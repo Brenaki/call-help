@@ -1,69 +1,31 @@
-# TDD - Como rodar os testes
+# Qualidade e TDD
 
-O projeto usa TDD (Test Driven Development): primeiro escreve o teste,
-depois implementa até passar, e depois refatora.
+O desenvolvimento segue o ciclo TDD: escrever o teste que falha, implementar o mínimo necessário e refatorar preservando a suíte verde. Os testes cobrem regras de chamados, conversa, anexos, transições, WebSocket e telas React.
 
-## Backend (pytest)
-
-Os testes do backend ficam em `backend/tests/`.
-
-### Rodar todos os testes
+## Backend
 
 ```bash
 cd backend
+uv sync --extra dev
 uv run pytest
 ```
 
-### Rodar um arquivo de teste só
+Os testes usam pytest, httpx e pytest-asyncio. Quando a suíte precisar da infraestrutura real, inicie o banco com `docker compose up -d db` a partir da raiz.
 
-```bash
-uv run pytest tests/test_auth.py
-```
-
-### Rodar por nome (keyword)
-
-```bash
-uv run pytest -k "login"
-```
-
-### Ver saida detalhada
-
-```bash
-uv run pytest -v
-```
-
-Os testes do backend rodam contra um MariaDB que sobe no docker-compose.
-Para os testes rodarem o banco precisa estar de pé:
-
-```bash
-docker compose up -d db
-```
-
-## Frontend (Vitest)
-
-Os testes do frontend ficam em `frontend/src/__tests__/`.
-
-### Rodar todos os testes (uma vez)
+## Frontend
 
 ```bash
 cd frontend
+npm install
 npm run test -- --run
+npm run build
 ```
 
-### Rodar em modo watch (recarrega ao salvar)
+Vitest e Testing Library verificam os componentes. `npm run build` é obrigatório na entrega porque também executa o typecheck do TypeScript antes do build Vite.
 
-```bash
-npm run test
-```
+## Verificações recomendadas antes da entrega
 
-### Rodar um arquivo de teste
-
-```bash
-npm run test -- --run NewTicket
-```
-
-## Ciclo TDD
-
-1. **Vermelho** - escreve o teste e roda, ele falha (ainda não implementou)
-2. **Verde** - implementa o mínimo para o teste passar
-3. **Refatora** - melhora o código mantendo os testes passando
+1. Rodar testes do backend e frontend.
+2. Rodar `npm run build` no frontend.
+3. Subir `docker compose up --build`.
+4. Executar o roteiro de [validação integrada](validacao.md).

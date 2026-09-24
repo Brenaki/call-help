@@ -1,3 +1,4 @@
+import PageHeader from '../components/PageHeader'
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import type { Equipment } from '../api/types'
@@ -51,9 +52,10 @@ export default function Equipments() {
 
   return (
     <div>
-      <h1>Equipamentos</h1>
-      {erro && <p className="erro">{erro}</p>}
+      <PageHeader title="Equipamentos" description="Organize os computadores, impressoras e demais equipamentos de TI da sua instituição." />
+      {erro && <p className="erro" role="alert">{erro}</p>}
 
+      <div className="management-grid">
       <form onSubmit={criar} className="formulario">
         <h2>Novo Equipamento</h2>
         <label>
@@ -62,26 +64,26 @@ export default function Equipments() {
         </label>
         <label>
           Tipo
-          <input value={tipo} onChange={(e) => setTipo(e.target.value)} />
+          <input placeholder="Ex.: notebook, impressora ou projetor" value={tipo} onChange={(e) => setTipo(e.target.value)} />
         </label>
         <label>
           Local
-          <input value={local} onChange={(e) => setLocal(e.target.value)} />
+          <input placeholder="Ex.: laboratório 2 ou escritório Central" value={local} onChange={(e) => setLocal(e.target.value)} />
         </label>
         <button type="submit" className="btn-primario">Cadastrar</button>
       </form>
 
       {equipamentos.length === 0 ? (
-        <p>Nenhum equipamento cadastrado.</p>
+        <p className="empty-state panel">Nenhum equipamento cadastrado.</p>
       ) : (
-        <table className="tabela">
+        <div className="table-scroll panel" role="region" aria-label="Registros cadastrados" tabIndex={0}><table className="tabela">
           <thead>
             <tr>
               <th>ID</th>
               <th>Nome</th>
               <th>Tipo</th>
               <th>Local</th>
-              <th></th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -99,8 +101,9 @@ export default function Equipments() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
       )}
+      </div>
     </div>
   )
 }

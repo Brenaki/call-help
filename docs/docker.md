@@ -1,49 +1,33 @@
-# Docker - Como rodar o projeto
+# Docker — Execução integrada
 
-## Pré-requisitos
-
-- Docker instalado
-- Docker Compose instalado
-
-## Rodando tudo
-
-Na pasta raiz do projeto (onde está o `docker-compose.yml`):
-
-```bash
-docker compose up --build
-```
-
-Isso sobe três serviços:
-
-| Serviço   | Porta | O que é               |
-|-----------|-------|-----------------------|
-| db        | 3306  | banco MariaDB         |
-| backend   | 8000  | API FastAPI           |
-| frontend  | 8080  | telas React (nginx)   |
-
-Depois de subir:
-
-- Frontend: http://localhost:8080
-- Backend (API): http://localhost:8000
-- Docs da API (Swagger): http://localhost:8000/docs
-
-## Parar
-
-```bash
-docker compose down
-```
-
-## Parar e apagar o banco
-
-```bash
-docker compose down -v
-```
-
-## Variáveis de ambiente
-
-Copie o `.env.example` para `.env` e ajuste se quiser mudar senhas ou
-configurações:
+Na raiz do repositório, copie o exemplo de variáveis e suba os serviços:
 
 ```bash
 cp .env.example .env
+docker compose up --build
+```
+
+| Serviço | Porta local | Responsabilidade |
+|---|---:|---|
+| `db` | 3306 | MariaDB 11 com volume `db_data` |
+| `backend` | 8000 | FastAPI, migrations no startup e volume `uploads_data` |
+| `frontend` | 8080 | build React servido por nginx |
+
+Endereços: interface em `http://localhost:8080`, API em `http://localhost:8000` e Swagger em `http://localhost:8000/docs`.
+
+O nginx serve a SPA, redireciona `/api/` ao backend e mantém o upgrade da conexão para `/api/ws`. Dessa forma, o frontend em container usa a mesma origem e o WebSocket funciona atrás do proxy.
+
+## Variáveis relevantes
+
+- `DATABASE_URL`, `MYSQL_*`: conexão e credenciais do MariaDB.
+- `JWT_SECRET`, `JWT_ALGORITHM`, `JWT_EXPIRE_MINUTES`: segurança do token.
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`: administrador criado automaticamente se inexistente.
+- `STORAGE_BACKEND`, `UPLOAD_DIR`, `MAX_UPLOAD_MB`: armazenamento e limite de anexo.
+- `VITE_API_URL`: em Docker use `/api`; em desenvolvimento direto use `http://localhost:8000`.
+
+Não utilize os valores de exemplo como segredos de produção.
+
+```bash
+docker compose down       # para, preservando volumes
+docker compose down -v    # para e remove banco/anexos locais
 ```
